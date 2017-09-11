@@ -24,7 +24,6 @@ import os
 import re
 import setproctitle
 import skimage
-import skimage.io
 import skimage.transform
 import sys
 import time
@@ -32,6 +31,8 @@ import tensorflow as tf
 
 import hdrnet.models as models
 import hdrnet.utils as utils
+
+from PIL import Image
 
 
 logging.basicConfig(format="[%(process)d] %(levelname)s %(filename)s:%(lineno)s | %(message)s")
@@ -142,12 +143,11 @@ def main(args):
         break
 
       log.info("Processing {}".format(input_path))
-      im_input = cv2.imread(input_path, -1)  # -1 means read as is, no conversions.
+      im_input = np.array(Image.open(input_path))
+
       if im_input.shape[2] == 4:
         log.info("Input {} has 4 channels, dropping alpha".format(input_path))
         im_input = im_input[:, :, :3]
-
-      im_input = np.flip(im_input, 2)  # OpenCV reads BGR, convert back to RGB.
 
       log.info("Max level: {}".format(np.amax(im_input[:, :, 0])))
       log.info("Max level: {}".format(np.amax(im_input[:, :, 1])))
@@ -182,37 +182,37 @@ def main(args):
           t_lowres_input: lowres_input
       }
 
-      out_ =  sess.run(output, feed_dict=feed_dict)
+      out_ = sess.run(output, feed_dict=feed_dict)
 
       if not os.path.exists(basedir):
         os.makedirs(basedir)
 
-      skimage.io.imsave(output_path, out_)
+      Image.fromarray(out_, mode='RGB').save(output_path)
 
       if args.debug:
         output_path = os.path.join(args.output, fname+"_input.png")
-        skimage.io.imsave(output_path, np.squeeze(im_input))
+        Image.fromarray(np.squeeze(im_input), mode='RGB').save(output_path)
 
         coeffs_ = sess.run(coeffs, feed_dict=feed_dict)
         output_path = os.path.join(args.output, fname+"_coeffs.png")
-        skimage.io.imsave(output_path, coeffs_)
+        Image.fromarray(coeffs_, mode='RGB').save(output_path)
         if len(ms) > 0:
           ms_ = sess.run(ms, feed_dict=feed_dict)
           for i, m in enumerate(ms_):
             output_path = os.path.join(args.output, fname+"_ms_{}.png".format(i))
-            skimage.io.imsave(output_path, m)
+            Image.fromarray(m, mode='RGB').save(output_path)
 
         if len(fr) > 0:
           fr_ = sess.run(fr, feed_dict=feed_dict)
           for i, m in enumerate(fr_):
             output_path = os.path.join(args.output, fname+"_fr_{}.png".format(i))
-            skimage.io.imsave(output_path, m)
+            Image.fromarray(m, mode='RGB').save(output_path)
 
         if len(guide) > 0:
           guide_ = sess.run(guide, feed_dict=feed_dict)
           for i, g in enumerate(guide_):
             output_path = os.path.join(args.output, fname+"_guide_{}.png".format(i))
-            skimage.io.imsave(output_path, g)
+            Image.fromarray(g, mode='RGB').save(output_path)
 
 
 
