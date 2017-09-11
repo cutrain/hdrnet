@@ -33,6 +33,7 @@ import hdrnet.models as models
 import hdrnet.utils as utils
 
 from PIL import Image
+import rawpy
 
 
 logging.basicConfig(format="[%(process)d] %(levelname)s %(filename)s:%(lineno)s | %(message)s")
@@ -41,10 +42,10 @@ log.setLevel(logging.INFO)
 
 
 def get_input_list(path):
-  regex = re.compile(".*.(png|jpeg|jpg|tif|tiff)")
+  regex = re.compile(".*.(png|jpeg|jpg|tif|tiff|cr2)")
   if os.path.isdir(path):
     inputs = os.listdir(path)
-    inputs = [os.path.join(path, f) for f in inputs if regex.match(f)]
+    inputs = [os.path.join(path, f) for f in inputs if regex.match(f.lower())]
     log.info("Directory input {}, with {} images".format(path, len(inputs)))
 
   elif os.path.splitext(path)[-1] == ".txt":
@@ -143,7 +144,14 @@ def main(args):
         break
 
       log.info("Processing {}".format(input_path))
-      im_input = np.array(Image.open(input_path))
+
+      im_ext = os.path.splitext(input_path)[1].lower()
+      if im_ext == '.cr2':
+        raw = rawpy.imread(input_path)
+        im_input = raw.postprocess()
+      else:
+        raw = cv2.imread(input_path)                  # opencv reads into a BGR format
+        im_input = cv2.cvtColor(raw, cv2.COLOR_BGR2RGB)
 
       if im_input.shape[2] == 4:
         log.info("Input {} has 4 channels, dropping alpha".format(input_path))
