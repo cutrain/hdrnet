@@ -13,9 +13,9 @@ NVCC = nvcc -std c++11
 # Use flag -undefined dynamic_lookup for OSX
 CFLAGS = -fPIC -I$(TF_INC) -O2
 LDFLAGS = -L$(CUDA_HOME)/lib64 -lcudart
-# Use flag -D _GLIBCXX_USE_CXX11_ABI=0 for gcc > 5
-NVFLAGS = -DGOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -I $(TF_INC) \
-					-expt-relaxed-constexpr -Wno-deprecated-gpu-targets -ftz=true
+NVFLAGS = -DGOOGLE_CUDA=1 -x cu -Xcompiler -fPIC -I$(TF_INC) -I$(SRC_DIR)\
+					-gencode=arch=compute_30,code=\"sm_30,compute_30\" \
+					-expt-relaxed-constexpr -Wno-deprecated-gpu-targets -ftz=true --ptxas-options=-v -lineinfo
 
 SRC = bilateral_slice.cc
 CUDA_SRC = bilateral_slice.cu.cc
