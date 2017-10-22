@@ -42,7 +42,7 @@ log.setLevel(logging.INFO)
 
 
 def get_input_list(path):
-  regex = re.compile(".*.(png|jpeg|jpg|tif|tiff|cr2)")
+  regex = re.compile(".*.(png|jpeg|jpg|tif|tiff|cr2|nef)")
   if os.path.isdir(path):
     inputs = os.listdir(path)
     inputs = [os.path.join(path, f) for f in inputs if regex.match(f.lower())]
@@ -146,7 +146,7 @@ def main(args):
       log.info("Processing {}".format(input_path))
 
       im_ext = os.path.splitext(input_path)[1].lower()
-      if im_ext == '.cr2':
+      if im_ext == '.cr2' or im_ext == '.nef':
         raw = rawpy.imread(input_path)
         im_input = raw.postprocess()
       else:
